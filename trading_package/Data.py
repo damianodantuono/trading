@@ -6,7 +6,7 @@ import pandas_datareader as pdr
 class Data():
 
     _existQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;"
-    _createTableQuery = """CREATE TABLE IF NOT EXISTS ? (
+    _createTableQuery = """CREATE TABLE IF NOT EXISTS {tableName} (
 	ID identity(1,1),
    	TIMESTAMP DATETIME NOT NULL,
 	OPEN float,
@@ -20,6 +20,7 @@ class Data():
     _readDataQuery = """SELECT DATE, "OPEN", HIGH, LOW, "CLOSE", ADJ_CLOSE, VOLUME
 FROM {tableName}
 """
+    _emptyQuery = "SELECT COUNT(*) FROM {tableName}"
 
     def _connect(database):
         return sqlite3.connect(database)
@@ -37,11 +38,21 @@ FROM {tableName}
             Data._disconnect(conn)
         return bool(fetched)
 
+    def empty(database, ticker):
+        conn = Data._connect(database)
+        try:
+            cursor = conn.cursor()
+            cursor.execute(Data._emptyQuery.format(tableName=ticker))
+            fetched = cursor.fetchall()
+        finally:
+            Data._disconnect(conn)
+        return not bool(fetched[0][0])
+
     def createTable(database, ticker):
         conn = Data._connect(database)
         try:
             cursor = conn.cursor()
-            cursor.execute(Data._createTableQuery, (ticker,))
+            cursor.execute(Data._createTableQuery.format(tableName=ticker))
             print(cursor.fetchall())
         finally:
             Data._disconnect(conn)

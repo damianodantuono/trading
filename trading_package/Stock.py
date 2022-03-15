@@ -3,7 +3,7 @@ import pandas as pd
 import pandas_datareader as pdr
 import os
 import sqlite3
-from Data import Data
+from trading_package.Data import Data
 
 
 class Stock():
