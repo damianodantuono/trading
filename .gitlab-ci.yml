@@ -1,12 +1,15 @@
+image: python:latest
+
 stages:
     - build
     - test
+
 
 build-job:
     stage: build
     script:
         - echo "Creating database..."
-        - mkdir -p ./resources/data/ && touch ./resources/data/data.db
+        - mkdir -p $CI_PROJECT_DIR/resources/data/ && touch $CI_PROJECT_DIR/resources/data/data.db
         - echo "Database created"
     
 test-db:
