@@ -1,0 +1,15 @@
+stages:
+    - build
+    - test
+
+build-job:
+    stage: build
+    script:
+        - echo "Creating database..."
+        - touch ./resources/data/data.db
+        - echo "Database created"
+    
+test-db:
+    stage: test
+    script:
+        - test -f ./resources/data/data.db && echo "Test db passed."
