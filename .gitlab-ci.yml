@@ -4,15 +4,17 @@ stages:
     - build
     - test
 
+pre-job:
+    stage: .pre
+    script:
+        - echo "iam pre job"
 
 build-job:
     stage: build
     script:
-        - echo "Creating database..."
-        - mkdir -p $CI_PROJECT_DIR/resources/data/ && touch $CI_PROJECT_DIR/resources/data/data.db
-        - echo "Database created"
+        - echo "Building..."
     
 test-db:
     stage: test
     script:
-        - test -f ./resources/data/data.db && echo "Test db passed."
+        - test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
