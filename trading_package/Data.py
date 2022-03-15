@@ -5,70 +5,92 @@ import pandas_datareader as pdr
 
 class Data():
 
-    _existQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;"
+    _existQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}';"
     _createTableQuery = """CREATE TABLE IF NOT EXISTS {tableName} (
-	ID identity(1,1),
-   	TIMESTAMP DATETIME NOT NULL,
+   	DATE DATETIME NOT NULL,
 	OPEN float,
    	HIGH float,
 	LOW float,
 	CLOSE float,
 	ADJ_CLOSE float,
-	VOLUME integer
+	VOLUME integer,
+    UP_DONCHIAN float,
+    DOWN_DONCHIAN float
 );
 """
     _readDataQuery = """SELECT DATE, "OPEN", HIGH, LOW, "CLOSE", ADJ_CLOSE, VOLUME
 FROM {tableName}
 """
     _emptyQuery = "SELECT COUNT(*) FROM {tableName}"
+    _dropQuery = "DROP TABLE IF EXISTS {tableName}"
 
-    def _connect(database):
-        return sqlite3.connect(database)
+    def __init__(self, database, ticker):
+        self.database = database
+        self.ticker = ticker
 
-    def _disconnect(connection):
+    def _connect(self):
+        return sqlite3.connect(self.database)
+
+    def _disconnect(self, connection):
         connection.close()
 
-    def exists(database, ticker):
-        conn = Data._connect(database)
+    def exists(self):
+        conn = self._connect()
         try:
             cursor = conn.cursor()
-            cursor.execute(Data._existQuery, (ticker, ))
+            cursor.execute(self._existQuery.format(tableName=self.ticker))
             fetched = cursor.fetchall()
         finally:
-            Data._disconnect(conn)
+            self._disconnect(conn)
         return bool(fetched)
 
-    def empty(database, ticker):
-        conn = Data._connect(database)
+    def empty(self):
+        conn = self._connect()
         try:
             cursor = conn.cursor()
-            cursor.execute(Data._emptyQuery.format(tableName=ticker))
+            cursor.execute(self._emptyQuery.format(tableName=self.ticker))
             fetched = cursor.fetchall()
         finally:
-            Data._disconnect(conn)
+            self._disconnect(conn)
         return not bool(fetched[0][0])
 
-    def createTable(database, ticker):
-        conn = Data._connect(database)
+    def createTable(self):
+        conn = self._connect()
         try:
             cursor = conn.cursor()
-            cursor.execute(Data._createTableQuery.format(tableName=ticker))
-            print(cursor.fetchall())
+            cursor.execute(self._createTableQuery.format(
+                tableName=self.ticker))
         finally:
-            Data._disconnect(conn)
+            self._disconnect(conn)
 
-    def insertData(database, ticker, data):
-        conn = Data._connect(database)
+    def insertData(self):
+        conn = self._connect()
         try:
-            data.to_sql(ticker, con=conn, if_exists='replace', index=False)
+            cursor = conn.cursor()
+            cursor.execute(f"DELETE FROM {self.ticker};")
+            self.fetchData().to_sql(self.ticker, con=conn,
+                                    if_exists='append', index=False)
         finally:
-            Data._disconnect(conn)
+            self._disconnect(conn)
 
-    def loadDataframe(database, ticker):
-        conn = Data._connect(database)
+    def loadDataframe(self):
+        conn = self._connect()
         try:
-            df = pd.read_sql_query(Data._readDataQuery.format(tableName=ticker),
+            df = pd.read_sql_query(self._readDataQuery.format(tableName=self.ticker),
                                    con=conn, index_col="DATE")
         finally:
-            Data._disconnect(conn)
+            self._disconnect(conn)
         return df
+
+    def fetchData(self):
+        return pdr.get_data_yahoo(self.ticker).reset_index(level=0).rename(
+            columns={"Date": "DATE", "High": "HIGH", "Low": "LOW", "Open": "OPEN", "Close": "CLOSE", "Volume": "VOLUME", "Adj Close": "ADJ_CLOSE"})[["DATE", "OPEN", "HIGH", "LOW", "CLOSE", "ADJ_CLOSE", "VOLUME"]]
+
+    def dropTable(self):
+        conn = self._connect()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(self._dropQuery.format(
+                tableName=self.ticker))
+        finally:
+            self._disconnect(conn)

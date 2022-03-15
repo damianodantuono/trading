@@ -1,8 +1,5 @@
-from dataclasses import dataclass
-import pandas as pd
 import pandas_datareader as pdr
 import os
-import sqlite3
 from trading_package.Data import Data
 
 
@@ -11,7 +8,39 @@ class Stock():
         self.ticker = ticker
         self.start = start
         self.end = end
+        self.dataInterface = Data(os.getenv("DATA_DB_PATH"), ticker)
 
-    def fetchData(self):
-        self.data = pdr.get_data_yahoo('AAPL').reset_index(level=0).rename(
-            columns={"Date": "DATE", "High": "HIGH", "Low": "LOW", "Open": "OPEN", "Close": "CLOSE", "Volume": "VOLUME", "Adj Close": "ADJ_CLOSE"})[["DATE", "OPEN", "HIGH", "LOW", "CLOSE", "ADJ_CLOSE", "VOLUME"]]
+    def updateData(self, force=False):
+        if not force:
+            if not self.dataInterface.exists():
+                self.dataInterface.createTable()
+                self.dataInterface.insertData()
+            elif self.dataInterface.empty():
+                self.dataInterface.insertData()
+            else:
+                pass
+        else:
+            self.dataInterface.createTable()
+            self.dataInterface.insertData()
+
+    def clearData(self):
+        self.dataInterface.dropTable()
+
+    def add_donchian_channel(dataframe, values):
+        """
+        Add donchian channel for N windows.
+        donchian channel: maximum of last N maxima and minimum of last N minima
+
+        Args:
+            dataframe (pandas.DataFrame): dataframe cointaining OHLC data.
+        """
+        values = set(values)
+
+        tmp_dataframe = dataframe.copy()
+        tmp_dataframe = tmp_dataframe.rename(columns=str.lower)
+        for value in values:
+            dataframe[f'hhv{value}'] = tmp_dataframe.high.rolling(value).max()
+            dataframe[f'llv{value}'] = tmp_dataframe.low.rolling(value).min()
+
+        dataframe.dropna(inplace=True)
+        return dataframe
