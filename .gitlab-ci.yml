@@ -6,7 +6,7 @@ build-job:
     stage: build
     script:
         - echo "Creating database..."
-        - touch ./resources/data/data.db
+        - mkdir -p ./resources/data/ && touch ./resources/data/data.db
         - echo "Database created"
     
 test-db:
