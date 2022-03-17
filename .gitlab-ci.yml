@@ -1,20 +1,20 @@
-image: python:latest
+# image: python:latest
 
-stages:
-    - build
-    - test
+# stages:
+#     - build
+#     - test
 
-pre-job:
-    stage: .pre
-    script:
-        - echo "iam pre job"
+# pre-job:
+#     stage: .pre
+#     script:
+#         - echo "iam pre job"
 
-build-job:
-    stage: build
-    script:
-        - echo "Building..."
+# build-job:
+#     stage: build
+#     script:
+#         - echo "Building..."
     
-test-db:
-    stage: test
-    script:
-        - test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
+# test-db:
+#     stage: test
+#     script:
+#         - test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
