@@ -1,0 +1,6 @@
+terminal:
+  # This can be any image that has the necessary runtime environment for your project.
+  image: python:latest
+  before_script:
+    - apk update
+  script: echo "ready!"
