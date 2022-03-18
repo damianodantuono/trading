@@ -8,11 +8,13 @@ pre-job:
     stage: .pre
     script:
         - echo "iam pre job"
+        - apt-get install tree
 
 build-job:
     stage: build
     script:
-        - echo "Building... env $CI_ENVIRONMENT_NAME"
+        - echo "Building..."
+        - tree
 test-db:
     stage: test
     script:
