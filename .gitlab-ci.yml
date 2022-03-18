@@ -12,8 +12,7 @@ pre-job:
 build-job:
     stage: build
     script:
-        - echo "Building..."
-    
+        - echo "Building... env $CI_ENVIRONMENT_NAME"
 test-db:
     stage: test
     script:
