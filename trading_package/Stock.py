@@ -1,6 +1,7 @@
 import pandas_datareader as pdr
 import os
 from trading_package.Data import Data
+from collections import deque
 
 
 class Stock():
@@ -26,6 +27,9 @@ class Stock():
     def clearData(self):
         self.dataInterface.dropTable()
 
+    def getData(self):
+        return self.dataInterface.loadDataframe()
+
     def add_donchian_channel(dataframe, values):
         """
         Add donchian channel for N windows.
@@ -44,3 +48,17 @@ class Stock():
 
         dataframe.dropna(inplace=True)
         return dataframe
+
+    def marketPositionGenerator(self, enterRule, exitRule):
+        status = 0
+        marketPositions = []
+        for i, j in zip(enterRule, exitRule):
+            if status == 0:
+                if i and not j:
+                    status = 1
+            else:
+                if j:
+                    status = 0
+            marketPositions.append(status)
+        
+        
