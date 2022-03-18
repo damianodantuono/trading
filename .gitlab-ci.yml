@@ -13,7 +13,12 @@ build-job:
     stage: build
     script:
         - echo "Building..."
+        - mkdir build
+        - touch build/file.txt
         - ls -l
+    artifacts:
+        paths:
+            - build/
 test-db:
     stage: test
     script:
