@@ -8,13 +8,12 @@ pre-job:
     stage: .pre
     script:
         - echo "iam pre job"
-        - apt-get install tree
 
 build-job:
     stage: build
     script:
         - echo "Building..."
-        - tree
+        - ls -l
 test-db:
     stage: test
     script:
