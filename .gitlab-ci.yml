@@ -17,4 +17,6 @@ build-job:
 test-db:
     stage: test
     script:
+        - ls -l
+        - test -f ./resources/data/data.db && echo "Test passed"
         - test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
