@@ -1,8 +1,6 @@
-import os
 from Parameters import *
-from trading import Stock, add_donchian_channel_down, add_donchian_channel_up, add_standard_deviation, crossunder, crossover, apply_function_to_series, add_mean
+from trading import *
 import dotenv
-import numpy as np
 
 dotenv.load_dotenv()
 
@@ -19,4 +17,5 @@ df = df.dropna()
 df["ENTER"] = crossover(df["ADJ_CLOSE"], df.HHV.shift(1))
 df["EXIT"] = crossunder(df["ADJ_CLOSE"], df["mean"] + number_of_standard_deviations * df["STD"])
 
-df.to_csv("test.csv", sep=';', decimal=',')
+dataframe = aapl.apply_trading_system(10000, 0.1, 0.01, Stock.LONG, 'limit', df.HHV.shift(1), df.ENTER, df.EXIT)
+dataframe.to_csv()
