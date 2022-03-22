@@ -1,16 +1,16 @@
-import trading_package
-import os
+from trading_package import Stock
 import dotenv
 
 dotenv.load_dotenv()
 
-aapl = trading_package.Stock('AAPL', start='2015-01-01')
+aapl = Stock('AAPL', start='2015-01-01')
 
-df = aapl.addDonchianChannel(20)
+df = aapl.add_donchian_channel(20)
 
-df["enterRule"] = trading_package.Stock.crossover(df.CLOSE, df.HHV20.shift(1))
-df["exitRule"] = trading_package.Stock.crossunder(df.CLOSE, df.LLV20.shift(1))
+df["enterRule"] = Stock.crossover(df.CLOSE, df.HHV20.shift(1))
+df["exitRule"] = Stock.crossunder(df.CLOSE, df.LLV20.shift(1))
 
-dataframe = aapl.applyTradingSystem(50000, 0.1, 20, 0.01, 'long', 'limit', df.HHV20.shift(1), df.enterRule, df.exitRule)
+dataframe = aapl.apply_trading_system(50000, 0.1, 0.01, Stock.LONG, 'limit', df.HHV20.shift(1), df.enterRule,
+                                      df.exitRule)
 
 dataframe.to_csv("test.csv", sep=';', decimal=',')

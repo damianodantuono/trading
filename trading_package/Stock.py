@@ -7,6 +7,9 @@ from collections import deque
 
 
 class Stock:
+    LONG = True
+    SHORT = False
+
     def __init__(self, ticker, start, end=None):
         self.ticker = ticker
         self.start = start
@@ -36,23 +39,28 @@ class Stock:
         df = self.dataInterface.loadDataframe()
         df[f'HHV{periods}'] = df.HIGH.rolling(periods).max()
         df[f'LLV{periods}'] = df.LOW.rolling(periods).min()
-
         return df.dropna()
 
-    def limit_check(self, dataframe, rules, level, direction):
+    def add_standard_deviation(self, periods):
+        df = self.dataInterface.loadDataframe()
+        df[f'STD{periods}'] = df.CLOSE.rolling(periods).std()
+        return df.dropna()
+
+    @staticmethod
+    def limit_check(dataframe, rules, level, direction):
         service_dataframe = pd.DataFrame(index=dataframe.index)
         service_dataframe['rules'] = rules
         service_dataframe['level'] = level
         service_dataframe['low'] = dataframe.low
         service_dataframe['high'] = dataframe.high
 
-        if direction == 'long':
+        if direction:
             service_dataframe['new_rules'] = np.where(service_dataframe.rules & (
-                service_dataframe.low.shift(-1) <= service_dataframe.level.shift(-1)), True, False)
+                    service_dataframe.low.shift(-1) <= service_dataframe.level.shift(-1)), True, False)
 
-        if direction == 'short':
+        else:
             service_dataframe['new_rules'] = np.where(service_dataframe.rules & (
-                service_dataframe.high.shift(-1) >= service_dataframe.level.shift(-1)), True, False)
+                    service_dataframe.high.shift(-1) >= service_dataframe.level.shift(-1)), True, False)
 
         return service_dataframe.new_rules
 
@@ -60,14 +68,14 @@ class Stock:
     def tick_correction_down(level, tick):
         if level != level:
             level = 0
-        multipier = math.floor(level/tick)
+        multipier = math.floor(level / tick)
         return multipier * tick
 
     @staticmethod
     def tick_correction_up(level, tick):
         if level != level:
             level = 0
-        multipier = math.ceil(level/tick)
+        multipier = math.ceil(level / tick)
         return multipier * tick
 
     @staticmethod
@@ -87,11 +95,13 @@ class Stock:
         market_positions[0] = 0
         return list(market_positions)
 
-    def apply_trading_system(self, money, fees, tick, direction, order_type, enter_level, entry_rules, exit_rules):
+    def apply_trading_system(self, money: float, fees: float, tick: float, direction: bool, order_type: str,
+                             enter_level: pd.Series, entry_rules: pd.Series, exit_rules: pd.Series) -> pd.DataFrame:
+
         dataframe = self.dataInterface.loadDataframe()
         dataframe = dataframe.rename(columns=str.lower)
         if order_type == 'limit':
-            entry_rules = self.limitCheck(
+            entry_rules = self.limit_check(
                 dataframe, entry_rules, enter_level, direction)
 
         dataframe['enter_level'] = enter_level
@@ -101,49 +111,50 @@ class Stock:
             entry_rules, exit_rules)
 
         if order_type == 'limit':
-            if direction == 'long':
+            if direction:
                 dataframe.enter_level = dataframe.enter_level.apply(
                     lambda x: self.tick_correction_down(x, tick))
                 real_entry = np.where(
                     dataframe.open < dataframe.enter_level, dataframe.open, dataframe.enter_level)
                 dataframe["entry_price"] = np.where((dataframe.market_position.shift(
                     1) == 0) & (dataframe.market_position == 1), real_entry, np.nan)
-            if direction == "short":
+            else:
                 dataframe.enter_level = dataframe.enter_level.apply(
                     lambda x: self.tick_correction_up(x, tick))
-                real_entry = np.where(
-                    dataframe.open > dataframe.enter_level, dataframe.open, dataframe.enter_level)
-                dataframe["entry_price"] = np.where((dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
-                                                    real_entry, np.nan)
+                real_entry = np.where(dataframe.open > dataframe.enter_level, dataframe.open, dataframe.enter_level)
+                dataframe["entry_price"] = np.where(
+                    (dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
+                    real_entry, np.nan)
 
-            dataframe["number_of_stocks"] = np.where((dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
-                                                     money / real_entry, np.nan)
+            dataframe["number_of_stocks"] = np.where(
+                (dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
+                money / real_entry, np.nan)
 
         dataframe["entry_price"] = dataframe["entry_price"].fillna(
             method='ffill')
         dataframe["events_in"] = np.where((dataframe.market_position == 1) & (
-            dataframe.market_position.shift(1) == 0), "entry", "")
+                dataframe.market_position.shift(1) == 0), "entry", "")
 
         dataframe["number_of_stocks"] = dataframe["number_of_stocks"].apply(
             lambda x: round(x, 0)).fillna(method='ffill')
 
-        if direction == "long":
-            dataframe["open_operations"] = (
-                dataframe.close - dataframe.entry_price) * dataframe.number_of_stocks
-            dataframe["open_operations"] = np.where((dataframe.market_position == 1) & (dataframe.market_position.shift(-1) == 0),
-                                                    (dataframe.open.shift(-1) -
-                                                     dataframe.entry_price)
-                                                    * dataframe.number_of_stocks - 2 * fees,
-                                                    dataframe.open_operations)
+        if direction:
+            dataframe["open_operations"] = (dataframe.close - dataframe.entry_price) * dataframe.number_of_stocks
+            dataframe["open_operations"] = np.where(
+                (dataframe.market_position == 1) & (dataframe.market_position.shift(-1) == 0),
+                (dataframe.open.shift(-1) -
+                 dataframe.entry_price)
+                * dataframe.number_of_stocks - 2 * fees,
+                dataframe.open_operations)
 
-        if direction == "short":
-            dataframe["open_operations"] = (
-                dataframe.entry_price - dataframe.close) * dataframe.number_of_stocks
-            dataframe["open_operations"] = np.where((dataframe.market_position == 1) & (dataframe.market_position.shift(-1) == 0),
-                                                    (dataframe.entry_price -
-                                                     dataframe.open.shift(-1))
-                                                    * dataframe.number_of_stocks - 2 * fees,
-                                                    dataframe.open_operations)
+        else:
+            dataframe["open_operations"] = (dataframe.entry_price - dataframe.close) * dataframe.number_of_stocks
+            dataframe["open_operations"] = np.where(
+                (dataframe.market_position == 1) & (dataframe.market_position.shift(-1) == 0),
+                (dataframe.entry_price -
+                 dataframe.open.shift(-1))
+                * dataframe.number_of_stocks - 2 * fees,
+                dataframe.open_operations)
 
         dataframe["open_operations"] = np.where(
             dataframe.market_position == 1, dataframe.open_operations, 0)
@@ -152,13 +163,11 @@ class Stock:
         dataframe["operations"] = np.where(dataframe.exit_rules & (dataframe.market_position == 1),
                                            dataframe.open_operations, np.nan)
         dataframe["closed_equity"] = dataframe.operations.fillna(0).cumsum()
-        dataframe["open_equity"] = dataframe.closed_equity + \
-            dataframe.open_operations - dataframe.operations.fillna(0)
+        dataframe["open_equity"] = dataframe.closed_equity + dataframe.open_operations - dataframe.operations.fillna(0)
 
         number_initial_stocks = money / dataframe.close[0]
 
-        dataframe["B&H"] = number_initial_stocks * \
-            (dataframe.close - dataframe.close[0])
+        dataframe["B&H"] = number_initial_stocks * (dataframe.close - dataframe.close[0])
 
         return dataframe
 
