@@ -3,8 +3,7 @@ import pandas as pd
 import pandas_datareader as pdr
 
 
-class Data():
-
+class Data:
     _existQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}';"
     _createTableQuery = """CREATE TABLE IF NOT EXISTS {tableName} (
    	DATE DATETIME NOT NULL,
@@ -84,7 +83,8 @@ FROM {tableName}
 
     def fetchData(self):
         return pdr.get_data_yahoo(self.ticker).reset_index(level=0).rename(
-            columns={"Date": "DATE", "High": "HIGH", "Low": "LOW", "Open": "OPEN", "Close": "CLOSE", "Volume": "VOLUME", "Adj Close": "ADJ_CLOSE"})[["DATE", "OPEN", "HIGH", "LOW", "CLOSE", "ADJ_CLOSE", "VOLUME"]]
+            columns={"Date": "DATE", "High": "HIGH", "Low": "LOW", "Open": "OPEN", "Close": "CLOSE", "Volume": "VOLUME",
+                     "Adj Close": "ADJ_CLOSE"})[["DATE", "OPEN", "HIGH", "LOW", "CLOSE", "ADJ_CLOSE", "VOLUME"]]
 
     def dropTable(self):
         conn = self._connect()
