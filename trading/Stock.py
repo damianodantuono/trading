@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import math
-from trading_package.Data import Data
+from trading.Data import Data
 from collections import deque
 
 

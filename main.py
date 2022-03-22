@@ -1,6 +1,6 @@
 import os
 from Parameters import *
-from trading_package import Stock, add_donchian_channel_down, add_donchian_channel_up, add_standard_deviation, crossunder, crossover, apply_function_to_series, add_mean
+from trading import Stock, add_donchian_channel_down, add_donchian_channel_up, add_standard_deviation, crossunder, crossover, apply_function_to_series, add_mean
 import dotenv
 import numpy as np
 
