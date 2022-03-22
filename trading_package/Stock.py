@@ -35,17 +35,6 @@ class Stock:
     def get_data(self):
         return self.dataInterface.loadDataframe()
 
-    def add_donchian_channel(self, periods):
-        df = self.dataInterface.loadDataframe()
-        df[f'HHV{periods}'] = df.HIGH.rolling(periods).max()
-        df[f'LLV{periods}'] = df.LOW.rolling(periods).min()
-        return df.dropna()
-
-    def add_standard_deviation(self, periods):
-        df = self.dataInterface.loadDataframe()
-        df[f'STD{periods}'] = df.CLOSE.rolling(periods).std()
-        return df.dropna()
-
     @staticmethod
     def limit_check(dataframe, rules, level, direction):
         service_dataframe = pd.DataFrame(index=dataframe.index)
@@ -55,12 +44,10 @@ class Stock:
         service_dataframe['high'] = dataframe.high
 
         if direction:
-            service_dataframe['new_rules'] = np.where(service_dataframe.rules & (
-                    service_dataframe.low.shift(-1) <= service_dataframe.level.shift(-1)), True, False)
+            service_dataframe['new_rules'] = np.where(service_dataframe.rules & (service_dataframe.low.shift(-1) <= service_dataframe.level.shift(-1)), True, False)
 
         else:
-            service_dataframe['new_rules'] = np.where(service_dataframe.rules & (
-                    service_dataframe.high.shift(-1) >= service_dataframe.level.shift(-1)), True, False)
+            service_dataframe['new_rules'] = np.where(service_dataframe.rules & (service_dataframe.high.shift(-1) >= service_dataframe.level.shift(-1)), True, False)
 
         return service_dataframe.new_rules
 
@@ -95,8 +82,7 @@ class Stock:
         market_positions[0] = 0
         return list(market_positions)
 
-    def apply_trading_system(self, money: float, fees: float, tick: float, direction: bool, order_type: str,
-                             enter_level: pd.Series, entry_rules: pd.Series, exit_rules: pd.Series) -> pd.DataFrame:
+    def apply_trading_system(self, money: float, fees: float, tick: float, direction: bool, order_type: str, enter_level: pd.Series, entry_rules: pd.Series, exit_rules: pd.Series) -> pd.DataFrame:
 
         dataframe = self.dataInterface.loadDataframe()
         dataframe = dataframe.rename(columns=str.lower)
@@ -107,36 +93,24 @@ class Stock:
         dataframe['enter_level'] = enter_level
         dataframe['enter_rules'] = entry_rules
         dataframe['exit_rules'] = exit_rules
-        dataframe['market_position'] = self.market_position_generator(
-            entry_rules, exit_rules)
+        dataframe['market_position'] = self.market_position_generator(entry_rules, exit_rules)
 
         if order_type == 'limit':
             if direction:
-                dataframe.enter_level = dataframe.enter_level.apply(
-                    lambda x: self.tick_correction_down(x, tick))
-                real_entry = np.where(
-                    dataframe.open < dataframe.enter_level, dataframe.open, dataframe.enter_level)
-                dataframe["entry_price"] = np.where((dataframe.market_position.shift(
-                    1) == 0) & (dataframe.market_position == 1), real_entry, np.nan)
+                dataframe.enter_level = dataframe.enter_level.apply(lambda x: self.tick_correction_down(x, tick))
+                real_entry = np.where(dataframe.open < dataframe.enter_level, dataframe.open, dataframe.enter_level)
+                dataframe["entry_price"] = np.where((dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1), real_entry, np.nan)
             else:
-                dataframe.enter_level = dataframe.enter_level.apply(
-                    lambda x: self.tick_correction_up(x, tick))
+                dataframe.enter_level = dataframe.enter_level.apply(lambda x: self.tick_correction_up(x, tick))
                 real_entry = np.where(dataframe.open > dataframe.enter_level, dataframe.open, dataframe.enter_level)
-                dataframe["entry_price"] = np.where(
-                    (dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
-                    real_entry, np.nan)
+                dataframe["entry_price"] = np.where((dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1), real_entry, np.nan)
 
-            dataframe["number_of_stocks"] = np.where(
-                (dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1),
-                money / real_entry, np.nan)
+            dataframe["number_of_stocks"] = np.where((dataframe.market_position.shift(1) == 0) & (dataframe.market_position == 1), money / real_entry, np.nan)
 
-        dataframe["entry_price"] = dataframe["entry_price"].fillna(
-            method='ffill')
-        dataframe["events_in"] = np.where((dataframe.market_position == 1) & (
-                dataframe.market_position.shift(1) == 0), "entry", "")
+        dataframe["entry_price"] = dataframe["entry_price"].fillna(method='ffill')
+        dataframe["events_in"] = np.where((dataframe.market_position == 1) & (dataframe.market_position.shift(1) == 0), "entry", "")
 
-        dataframe["number_of_stocks"] = dataframe["number_of_stocks"].apply(
-            lambda x: round(x, 0)).fillna(method='ffill')
+        dataframe["number_of_stocks"] = dataframe["number_of_stocks"].apply(lambda x: round(x, 0)).fillna(method='ffill')
 
         if direction:
             dataframe["open_operations"] = (dataframe.close - dataframe.entry_price) * dataframe.number_of_stocks
@@ -170,17 +144,3 @@ class Stock:
         dataframe["B&H"] = number_initial_stocks * (dataframe.close - dataframe.close[0])
 
         return dataframe
-
-    @staticmethod
-    def crossunder(array1, array2):
-        """
-        when array1 crosses top-to-bottom array2, the function returns true
-        """
-        return (array1 < array2) & (array1.shift(1) > array2.shift(2))
-
-    @staticmethod
-    def crossover(array1, array2):
-        """
-        when array1 crosses bottom-to-top array2, the function returns true
-        """
-        return (array1 > array2) & (array1.shift(1) < array2.shift(2))
