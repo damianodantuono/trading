@@ -83,7 +83,17 @@ class Stock:
         return list(market_positions)
 
     def apply_trading_system(self, money: float, fees: float, tick: float, direction: bool, order_type: str, enter_level: pd.Series, entry_rules: pd.Series, exit_rules: pd.Series) -> pd.DataFrame:
-
+        """
+        @param money: initial amount
+        @param fees: broker fees
+        @param tick: minimum tick of stock
+        @param direction: long or short
+        @param order_type: limit or stop
+        @param enter_level: entry price
+        @param entry_rules: entry rule
+        @param exit_rules: exit rule
+        @return: dataframe with the whole trading history
+        """
         dataframe = self.dataInterface.loadDataframe()
         dataframe = dataframe.rename(columns=str.lower)
         if order_type == 'limit':
@@ -94,6 +104,8 @@ class Stock:
         dataframe['enter_rules'] = entry_rules
         dataframe['exit_rules'] = exit_rules
         dataframe['market_position'] = self.market_position_generator(entry_rules, exit_rules)
+
+        dataframe = dataframe.dropna()
 
         if order_type == 'limit':
             if direction:
