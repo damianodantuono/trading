@@ -17,3 +17,6 @@ df["EXIT"] = crossunder(df["ADJ_CLOSE"], df["mean"] + number_of_standard_deviati
 
 dataframe = aapl.apply_trading_system(10000, 0.1, 0.01, Stock.LONG, 'limit', df.HHV.shift(1), df.ENTER, df.EXIT)
 dataframe.to_csv("df.csv", sep=';', decimal=',')
+
+rep = Report(dataframe, 'AAPL')
+rep.performance_report()
