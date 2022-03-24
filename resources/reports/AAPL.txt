@@ -26,3 +26,32 @@ Max Closed Draw Down:    , 0.0
 Avg Delay Between Peaks: , 27.77
 Max Delay Between Peaks: , 111
         
+Performance Report for AAPL - Unknown Strategy
+
+Profit:                   , 19500.86
+Operations:              , 2
+Average Trade:           , 10279.1
+
+Profit Factor:            , inf
+Gross Profit:             , 20558.2
+Gross Loss:              , 0.0
+
+Percent Winning Trades:  , 100.0 %
+Percent Losing Trades:   , 0.0 %
+Reward Risk Ratio:       , nan
+
+Max Gain:                , 16292.6,  in date , 2020-08-03 00:00:00
+Average Gain:            , 10279.1
+Max Loss:                , 4265.6,  in date , 2021-11-19 00:00:00
+Average Loss:            , nan
+
+Avg Open Draw Down:      , -996.08
+Max Open Draw Down:      , -6195.51
+
+Avg Closed Draw Down:    , nan
+Max Closed Draw Down:    , 0.0
+
+Avg Delay Between Peaks: , 27.77
+Max Delay Between Peaks: , 111
+
+        

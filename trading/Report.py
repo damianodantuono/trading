@@ -4,11 +4,13 @@ import os
 
 
 class Report:
-    def __init__(self, df: pd.DataFrame, ticker: str = None, title: str = None) -> None:
+    def __init__(self, df: pd.DataFrame, ticker: str = None, title: str = None, entry_rule: str = None, exit_rule: str = None) -> None:
         self.df = df
         self.ticker = "Unknown" if ticker is None else ticker
         self.title = "Unknown Strategy" if title is None else title
-
+        self.entry_rule = "" if entry_rule is None else entry_rule
+        self.exit_rule = "" if exit_rule is None else exit_rule
+        
     def drawdown(self, equity_column):
         maxvalue = self.df[equity_column].expanding(0).max()
         drawdown = pd.Series(self.df[equity_column] - maxvalue, index=self.df[equity_column].index)
@@ -100,6 +102,8 @@ class Report:
 
     def calculate_report(self):
         return {
+            "Ticker": self.ticker,
+            "Strategy": self.title,
             "Profit": {
                 "Profit": self.profit("open_equity"),
                 "Profit Factor": self.profit_factor("operations"),
@@ -136,7 +140,7 @@ class Report:
         }
 
     def table_report(self):
-        return pd.json_normalize(self.calculate_report(), sep='.')
+        return pd.json_normalize(self.calculate_report(), sep='.').set_index("Ticker")
 
     def build_report(self):
         return f"""Performance Report for {self.ticker} - {self.title}
@@ -171,11 +175,9 @@ Max Delay Between Peaks: , {self.max_delay_between_peaks("open_equity")}
 
     def write_report(self):
         text_output = self.build_report()
-
         output_path = os.path.join(*[".", "resources", "reports", self.ticker + '.txt'])
 
         if not os.path.exists(os.path.dirname(output_path)):
             os.makedirs(os.path.dirname(output_path))
-
-        with open(output_path, 'a') as f:
+        with open(output_path, 'w') as f:
             print(text_output, file=f)
