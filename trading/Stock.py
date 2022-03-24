@@ -33,6 +33,7 @@ class Stock:
         self.dataInterface.dropTable()
 
     def get_data(self):
+        self.update_data()
         return self.dataInterface.loadDataframe()
 
     @staticmethod
