@@ -72,6 +72,9 @@ class Report:
         operations = self.df[operation_column].dropna()
         return {'mean': round(operations.mean(), 2), 'std': round(operations.std(), 2)}
 
+    def avg_trade(self, operation_column):
+        return self.df[operation_column].dropna().mean().__round__(2)
+
     def delay_between_peaks(self, equity_column):
         work_df = pd.DataFrame(self.df[equity_column], index=self.df[equity_column].index)
         work_df['drawdown'] = self.drawdown(equity_column)
@@ -95,12 +98,52 @@ class Report:
         a = work_df['delay_element'].groupby(work_df['cumsum']).cumsum()
         return round(a.mean(), 2)
 
-    def performance_report(self):
-        output = f"""Performance Report for {self.ticker} - {self.title}
+    def calculate_report(self):
+        return {
+            "Profit": {
+                "Profit": self.profit("open_equity"),
+                "Profit Factor": self.profit_factor("operations"),
+                "Gross Profit": self.gross_profit("operations"),
+                "Gross Loss": self.gross_loss("operations")
+            },
+            "Trades": {
+                "Operations": self.number_of_operations("operations"),
+                "Average Trade": self.avg_trade("operations"),
+                "% Winning Trades": self.percent_win("operations"),
+                "% Losing Trades": 100 - self.percent_win("operations"),
+                "Reward Risk Ratio": self.reward_risk_ratio("operations")
+            },
+            "Gains": {
+                "Max": self.max_gain("operations")[1],
+                "Max Date": self.max_gain("operations")[0],
+                "Average": self.avg_gain("operations")
+            },
+            "Losses": {
+                "Max": self.max_loss("operations")[1],
+                "Max Date": self.max_loss("operations")[0],
+                "Average": self.avg_loss("operations")
+            },
+            "Drawdown": {
+                "Average Open": self.avg_drawdown("open_equity"),
+                "Max Open": self.max_drawdown("open_equity"),
+                "Average Close": self.avg_drawdown("closed_equity"),
+                "Max Close": self.avg_drawdown("closed_equity")
+            },
+            "Peaks": {
+                "Average Delay": self.avg_delay_between_peaks("open_equity"),
+                "Max Delay": self.max_delay_between_peaks("open_equity")
+            }
+        }
+
+    def table_report(self):
+        return pd.json_normalize(self.calculate_report(), sep='.')
+
+    def build_report(self):
+        return f"""Performance Report for {self.ticker} - {self.title}
 
 Profit:                   , {self.profit("open_equity")}
 Operations:              , {self.number_of_operations("operations")}
-Average Trade:           , {self.df.operations.dropna().mean().__round__(2)}
+Average Trade:           , {self.avg_trade("operations")}
 
 Profit Factor:            , {self.profit_factor("operations")}
 Gross Profit:             , {self.gross_profit("operations")}
@@ -126,10 +169,13 @@ Max Delay Between Peaks: , {self.max_delay_between_peaks("open_equity")}
 
         """
 
+    def write_report(self):
+        text_output = self.build_report()
+
         output_path = os.path.join(*[".", "resources", "reports", self.ticker + '.txt'])
 
         if not os.path.exists(os.path.dirname(output_path)):
             os.makedirs(os.path.dirname(output_path))
 
         with open(output_path, 'a') as f:
-            print(output, file=f)
+            print(text_output, file=f)
