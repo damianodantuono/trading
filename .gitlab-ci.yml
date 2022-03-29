@@ -15,13 +15,8 @@ build-job:
         - echo "Building..."
         - mkdir build
         - touch build/file.txt
-        - ls -l
-    artifacts:
-        paths:
-            - build/
 test-db:
     stage: test
     script:
-        - ls -l
         - test -f ./resources/data/data.db && echo "Test passed"
-        - test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
+        #- test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
