@@ -5,7 +5,7 @@ import pandas_datareader as pdr
 
 class Data:
     _existQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}';"
-    _createTableQuery = """CREATE TABLE IF NOT EXISTS {tableName} (
+    _createTableQuery = """CREATE TABLE IF NOT EXISTS "{tableName}" (
    	DATE DATETIME NOT NULL,
 	OPEN float,
    	HIGH float,
@@ -18,10 +18,10 @@ class Data:
 );
 """
     _readDataQuery = """SELECT DATE, "OPEN", HIGH, LOW, "CLOSE", ADJ_CLOSE, VOLUME
-FROM {tableName}
+FROM "{tableName}"
 """
-    _emptyQuery = "SELECT COUNT(*) FROM {tableName}"
-    _dropQuery = "DROP TABLE IF EXISTS {tableName}"
+    _emptyQuery = "SELECT COUNT(*) FROM \"{tableName}\""
+    _dropQuery = "DROP TABLE IF EXISTS \"{tableName}\""
 
     def __init__(self, database, ticker):
         self.database = database
