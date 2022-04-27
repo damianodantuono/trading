@@ -3,6 +3,7 @@ import numpy as np
 import os
 import math
 from trading.Data import Data
+from trading.File import File
 from collections import deque
 
 
@@ -14,7 +15,7 @@ class Stock:
         self.ticker = ticker
         self.start = start
         self.end = end
-        self.dataInterface = Data(os.getenv("DATA_DB_PATH"), ticker)
+        self.dataInterface = File(os.getenv("DATA_DB_PATH"), ticker)
 
     def update_data(self, force=False):
         if not force:
