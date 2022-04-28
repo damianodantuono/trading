@@ -5,6 +5,7 @@ import math
 from trading.Data import Data
 from trading.File import File
 from collections import deque
+import datetime
 
 
 class Stock:
@@ -14,28 +15,24 @@ class Stock:
     def __init__(self, ticker, start, end=None):
         self.ticker = ticker
         self.start = start
-        self.end = end
-        self.dataInterface = File(os.getenv("DATA_DB_PATH"), ticker)
+        self.end = datetime.date.today().strftime("%Y-%m-%d") if end is None else end
+        self.dataInterface = File(ticker)
 
     def update_data(self, force=False):
         if not force:
             if not self.dataInterface.exists():
-                self.dataInterface.createTable()
-                self.dataInterface.insertData()
-            elif self.dataInterface.empty():
-                self.dataInterface.insertData()
+                self.dataInterface.write(self.start, self.end)
             else:
                 pass
         else:
-            self.dataInterface.createTable()
-            self.dataInterface.insertData()
+            self.dataInterface.write(self.start, self.end)
 
     def clear_data(self):
-        self.dataInterface.dropTable()
+        self.dataInterface.delete_file()
 
     def get_data(self):
         self.update_data()
-        return self.dataInterface.loadDataframe()
+        return self.dataInterface.read()
 
     @staticmethod
     def limit_check(dataframe, rules, level, direction):

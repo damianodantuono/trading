@@ -3,3 +3,4 @@ number_of_periods = 5
 money = 10000
 fees = 0.1
 tick = 0.01
+start = '2000-01-01'
