@@ -2,7 +2,6 @@ image: python:latest
 
 stages:
     - build
-    - test
 
 pre-job:
     stage: .pre
@@ -13,10 +12,3 @@ build-job:
     stage: build
     script:
         - echo "Building..."
-        - mkdir build
-        - touch build/file.txt
-test-db:
-    stage: test
-    script:
-        - test -f ./resources/data/data.db && echo "Test passed"
-        #- test -f $CI_PROJECT_DIR/resources/data/data.db && echo "Test db passed."
