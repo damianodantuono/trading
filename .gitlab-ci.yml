@@ -6,16 +6,22 @@ stages:
 
 # pre-job:
 #     stage: .pre
+#     only:
+#      - main
 #     script:
 #         - echo "iam pre job"
 
 # build-job:
 #     stage: build
+#     only:
+#       - main
 #     script:
 #         - echo "Building..."
 
 download-SP500-data:
     stage: deploy
+    only:
+        - main
     script:
         - >
             if [ "$automatic_run" == "true" ] ;
@@ -23,6 +29,3 @@ download-SP500-data:
             pip3 install -r resources/requirements/requirements.txt;
             python3 download_SP_500_data.py;
             fi
-                
-
-
