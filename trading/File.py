@@ -51,9 +51,3 @@ class File:
             return pd.read_parquet(self.data_path, storage_options={'token': token}, engine='pyarrow')
         else:
             raise FileNotFoundError("File does not exist on cloud storage. Please download before reading.")
-
-
-f = File("AAPL")
-df = f.read()
-
-print(df)
