@@ -2,6 +2,7 @@ image: python:latest
 
 stages:
     - build
+    - deploy
 
 pre-job:
     stage: .pre
@@ -12,3 +13,16 @@ build-job:
     stage: build
     script:
         - echo "Building..."
+
+download-SP500-data:
+    stage: deploy
+    script:
+        - >
+            if ["$automatic_run" == "true"] 
+            then
+            pip3 install -r resources/requirements/requirements.txt
+            python3 download_SP_500_data.py
+            fi
+                
+
+
