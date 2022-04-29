@@ -18,10 +18,10 @@ download-SP500-data:
     stage: deploy
     script:
         - >
-            if ["$automatic_run" == "true"] 
+            if ["$automatic_run" == "true"] ;
             then
-            pip3 install -r resources/requirements/requirements.txt
-            python3 download_SP_500_data.py
+            pip3 install -r resources/requirements/requirements.txt;
+            python3 download_SP_500_data.py;
             fi
                 
 
