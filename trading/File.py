@@ -40,7 +40,7 @@ class File:
             old_df = self.read()
             start = (old_df.index.max() + pd.DateOffset(1)).strftime("%Y-%m-%d")
             df = self.download(start, end)
-            df = self.read().append(df)
+            df = old_df.concat(df)
             df.to_parquet(self.data_path, compression='gzip', storage_options={'token': token}, engine='pyarrow')
         else:
             df = self.download(start, end)
