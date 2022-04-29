@@ -2,4 +2,3 @@ google-cloud-storage
 pandas
 pandas-datareader
 numpy
-dotenv
