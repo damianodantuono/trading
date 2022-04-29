@@ -29,6 +29,3 @@ download-SP500-data:
             pip3 install -r resources/requirements/requirements.txt;
             python3 download_SP_500_data.py;
             fi
-                
-
-
