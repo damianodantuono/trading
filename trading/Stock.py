@@ -18,20 +18,13 @@ class Stock:
         self.end = datetime.date.today().strftime("%Y-%m-%d") if end is None else end
         self.dataInterface = File(ticker)
 
-    def update_data(self, force=False):
-        if not force:
-            if not self.dataInterface.exists():
-                self.dataInterface.write(self.start, self.end)
-            else:
-                pass
-        else:
-            self.dataInterface.write(self.start, self.end)
+    def update_data(self):
+        self.dataInterface.write(self.start, self.end)
 
     def clear_data(self):
         self.dataInterface.delete_file()
 
     def get_data(self):
-        self.update_data()
         return self.dataInterface.read()
 
     @staticmethod

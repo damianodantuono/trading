@@ -30,6 +30,12 @@ def add_mean(close_series, periods):
     return apply_function_to_series(close_series, periods, np.mean)
 
 
+def add_average_true_range(high_low, high_close, low_close, periods):
+    ranges = pd.concat([high_low, high_close, low_close], axis=1)
+    true_range = ranges.max(axis=1)
+    return apply_function_to_series(true_range, periods, np.mean)
+
+
 def add_stoploss(entry_level: pd.Series, enter_rule: pd.Series, exit_rule: pd.Series, stop_loss: float) -> pd.Series:
     df = pd.DataFrame({'entry_level': entry_level, 'enter_rule': enter_rule, 'exit_rule': exit_rule})
     df = df.sort_index()
