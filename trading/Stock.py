@@ -86,7 +86,7 @@ class Stock:
         @param exit_rules: exit rule
         @return: dataframe with the whole trading history
         """
-        dataframe = self.dataInterface.loadDataframe()
+        dataframe = self.dataInterface.read()
         dataframe = dataframe.rename(columns=str.lower)
         if order_type == 'limit':
             entry_rules = self.limit_check(
