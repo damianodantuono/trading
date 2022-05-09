@@ -9,6 +9,6 @@ for i, ticker in enumerate(tickers):
     complete = round(i/len(tickers) * 100, 2)
     print("Downloading", ticker, complete, "%")
     try:
-        stock = Stock(ticker, start=parameters.start).update_data(force=True)
+        stock = Stock(ticker, start=parameters.start).update_data()
     except Exception as ex:
         print(ex)
