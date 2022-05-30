@@ -1,22 +1,7 @@
 image: python:latest
 
 stages:
-    - build
     - deploy
-
-pre-job:
-    stage: .pre
-    only:
-     - main
-    script:
-        - echo "iam pre job"
-
-build-job:
-    stage: build
-    only:
-      - main
-    script:
-        - echo "Building..."
 
 download-SP500-data:
     stage: deploy
